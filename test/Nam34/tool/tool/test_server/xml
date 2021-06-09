@@ -1,0 +1,5 @@
+String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
+                "<request protocol=\"3.0\" version=\"1.0.0.0\" ismachine=\"1\" sessionid=\"{52C632A0-DF77-4E31-BF5E-3D954DE396E1}\" userid=\"{434EE046-37E2-434E-9736-7681CDAC70EA}\" installsource=\"scheduler\" testsource=\"auto\" requestid=\"{13ECE427-66D3-44FA-AD41-A60C66BA6677}\">"+
+                "<os platform=\"win\" version=\""+ versionOS +"\" sp=\"Service Pack 1\" arch=\"x86\" />"+
+                "<app appid=\"{"+ appID +"}\" version=\""+ versionAPP +"\" nextversion=\"\" lang=\"vi\" brand=\"GGLS\" client=\"OtaClient\" tag=\""+ tag +"\" installage=\"0\">"+
+                "<event errorcode=\"0\" eventresult=\"0\" eventtype=\"2\" extracode1=\"0\" /><updatecheck/></app></request>";

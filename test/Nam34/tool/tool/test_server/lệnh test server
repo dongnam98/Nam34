@@ -1,0 +1,3 @@
+curl -X POST --header "Content-Type:text/xml;charset=UTF-8" --data @test.xml http://10.2.64.113:9090/service/update2 
+
+
