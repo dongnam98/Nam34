@@ -1,0 +1,25 @@
+Tao file service o duong dan /etc/systemd/system/ quyen 644
+[Unit]
+Description=bangthong
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /usr/bin/bangthong.sh
+
+[Install]
+WantedBy=multi-user.target
+
+Tao file sh chay sevice o duong dan /usr/bin/ cap quyen cho file +x cho file sh
+
+#!/bin/bash
+while true
+do
+        T1=`cat /sys/class/net/eno1/statistics/tx_bytes`
+        sleep 1
+        T2=`cat /sys/class/net/eno1/statistics/tx_bytes`
+        TBPS=`expr $T2 - $T1`
+        TKBPS=`expr $TBPS / 1024 `
+        echo $TKBPS > /home/hoahp/omaha-server/omaha_server/bangthong.txt
+done
+
+

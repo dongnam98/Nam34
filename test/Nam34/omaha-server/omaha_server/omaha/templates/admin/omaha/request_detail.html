@@ -1,0 +1,206 @@
+{% extends "admin/base.html" %}
+{% load suit_tags %}
+{% load suit_list %}
+{% load get_item %}
+
+{% block title %}Statistics | {{ 'ADMIN_NAME'|suit_conf }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'admin:index' %}">Home</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics" %}">Statistics</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics_detail" app_name %}">{{ app_name }}</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_request_list" app_name %}">Requests</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li class="active">Detail</li>
+    </ul>
+{% endblock %}
+
+
+{% block content %}
+
+    <table class="table table-condensed">
+        <tbody>
+        <tr>
+            <td>Date</td>
+            <td>{{ object.request.created|date:"r" }}</td>
+        </tr>
+        <tr>
+            <td>App</td>
+            <td>{{ app_name }}</td>
+        </tr>
+        <tr>
+            <td>App version</td>
+            <td>{{ object.version|default_if_none:'Unknown' }}</td>
+        </tr>
+        <tr>
+            <td>Omaha version</td>
+            <td>{{ object.request.version|default_if_none:'Unknown' }}</td>
+        </tr>
+        <tr>
+            <td>IP</td>
+            <td>{{ object.request.ip|default_if_none:'Unknown' }}</td>
+        </tr>
+        <tr>
+            <td><a href="#" rel="tooltip" title="Yes or No, depending on whether the Omaha client is a per-user or per-machine instance">Is machine</a></td>
+            <td>{% if object.request.ismachine %}Yes{% else %}No{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Updater channel</td>
+            <td>{{ object.request.updaterchannel|default_if_none:'Unknown' }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="accordion" id="accordion_os">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_os" href="#collapseOS">
+                    OS
+                </a>
+            </div>
+            <div id="collapseOS" class="accordion-body collapse in">
+                <table class="table table-condensed table">
+                    <tr>
+                        <td>Platform</td>
+                        <td>{{ object.request.os.platform }}</td>
+                    </tr>
+                    <tr>
+                        <td>Arch</td>
+                        <td>{{ object.request.os.arch }}</td>
+                    </tr>
+                    <tr>
+                        <td>Version</td>
+                        <td>{{ object.request.os.version }}</td>
+                    </tr>
+                    <tr>
+                        <td>Service-pack</td>
+                        <td>{{ object.request.os.sp  }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if object.request.hw %}
+    <div class="accordion" id="accordion_hw">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_hw" href="#collapseHW">
+                    Hardware
+                </a>
+            </div>
+            <div id="collapseHW" class="accordion-body collapse">
+                <table class="table table-condensed">
+                    <tr>
+                        <td>sse</td>
+                        <td>{{ object.request.hw.sse|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>sse2</td>
+                        <td>{{ object.request.hw.sse2|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>sse3</td>
+                        <td>{{ object.request.hw.sse3|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>ssse3</td>
+                        <td>{{ object.request.hw.ssse3|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>sse41</td>
+                        <td>{{ object.request.hw.sse41|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>sse42</td>
+                        <td>{{ object.request.hw.sse42|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>avx</td>
+                        <td>{{ object.request.hw.avx|default_if_none:'Unknown' }}</td>
+                    </tr>
+                    <tr>
+                        <td>physmemory</td>
+                        <td>{{ object.request.hw.physmemory|default_if_none:'Unknown' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <div class="accordion" id="accordion_events">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_os" href="#collapseEvents">
+                    Events
+                </a>
+            </div>
+            <div id="collapseEvents" class="accordion-body collapse in">
+                <table class="table table-condensed table-bordered">
+                    <thead>
+                    <tr>
+                        <th>type</th>
+                        <th>result</th>
+                        <th>error code</th>
+                        <th><a href="#" rel="tooltip" title="Additional numerical information related to errorcode">extra code1</a></th>
+                        <th><a href="#" rel="tooltip" title="Time taken for the download (if there had been one, note for cached app, download time is 0)">download time ms</a></th>
+                        <th><a href="#" rel="tooltip" title="Bytes downloaded">downloaded</a></th>
+                        <th><a href="#" rel="tooltip" title="Sum of all packages sizes in this app">total</a></th>
+                        <th><a href="#" rel="tooltip" title="Time taken to do an update check for the app">update check time ms</a></th>
+                        <th><a href="#" rel="tooltip" title="Time take to install Omaha or an app">install time ms</a></th>
+                        <th><a href="#" rel="tooltip" title="Index of the URL that served app installer download">source url index</a></th>
+                        <th><a href="#" rel="tooltip" title="App state when user cancels installation">state cancelled</a></th>
+                        <th><a href="#" rel="tooltip" title="Time interval between update is available and user cancels installation">time since update available ms</a></th>
+                        <th><a href="#" rel="tooltip" title="Time interval between update download starts and user cancels installation">time since download start ms</a></th>
+                        <th><a href="#" rel="tooltip" title="The version of the app that an update was attempted to (regardless of whether or not the update succeeded)">next version</a></th>
+                        <th><a href="#" rel="tooltip" title="The version of the app prior to the update attempt">previous version</a></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for event in object.events.all %}
+                        <tr {% if event.is_error %}class="error"{% endif %}>
+                            <td>{{ EVENT_TYPE|get_item:event.eventtype }}</td>
+                            <td>{{ EVENT_RESULT|get_item:event.eventresult }}</td>
+                            <td>{{ event.errorcode }}</td>
+                            <td>{{ event.extracode1 }}</td>
+                            <td>{{ event.download_time_ms|default_if_none:'' }}</td>
+                            <td>{{ event.downloaded|default_if_none:'' }}</td>
+                            <td>{{ event.total|default_if_none:'' }}</td>
+                            <td>{{ event.update_check_time_ms|default_if_none:'' }}</td>
+                            <td>{{ event.install_time_ms|default_if_none:'' }}</td>
+                            <td>{{ event.source_url_index|default_if_none:'' }}</td>
+                            <td>{{ STATE_CANCELLED|get_item:event.state_cancelled|default_if_none:'' }}</td>
+                            <td>{{ event.time_since_update_available_ms|default_if_none:'' }}</td>
+                            <td>{{ event.time_since_download_start_ms|default_if_none:'' }}</td>
+                            <td>{{ event.nextversion|default_if_none:'' }}</td>
+                            <td>{{ event.previousversion|default_if_none:'' }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extrajs %}
+    <script>
+    $(document).ready(function(){
+        $("[rel=tooltip]").tooltip({placement: 'bottom'});
+    });
+    </script>
+{% endblock %}

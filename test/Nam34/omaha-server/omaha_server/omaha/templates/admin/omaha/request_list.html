@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% load suit_tags %}
+{% load suit_list %}
+{% load url_replace %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Statistics | {{ 'ADMIN_NAME'|suit_conf }}{% endblock %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
+    <style>
+        .table-container, .paleblue {
+            width: 100% !important;
+        }
+    </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'admin:index' %}">Home</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics" %}">Statistics</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics_detail" app_name %}">{{ app_name }}</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li class="active">
+            <a href="#">Requests</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    {{ filter.form.media.css }}
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    {{ filter.form.media.js }}
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" id="app-id" value="{{ app_id }}">
+    <form action="" method="get" class="form-horizontal">
+        {{ filter.form.as_p }}
+        <input type="submit" value="Search" class="btn"/>
+    </form>
+
+    {% render_table table %}
+{% endblock %}

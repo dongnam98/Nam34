@@ -1,0 +1,167 @@
+{% extends "admin/base.html" %}
+{% load nvd3_tags %}
+{% load suit_tags %}
+{% load render_table from django_tables2 %}
+{% load staticfiles %}
+{% block title %}Statistics | {{ 'ADMIN_NAME'|suit_conf }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'admin:index' %}">Home</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics" %}">Statistics</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li class="active">
+            <a href="#">{{ app.name }}</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block extrahead %}
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.1/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" type="text/css" media="screen"
+	          href="https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" media="screen"
+	          href='{% static "statistics/css/statistics.css" %}'>
+    {% include_chart_jscss %}
+
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.1/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+    <script src='{% static "statistics/js/month_charts.js" %}'></script>
+    <script src='{% static "statistics/js/version_charts.js" %}'></script>
+    <script src='{% static "statistics/js/channel_charts.js" %}'></script>
+    <script type="text/javascript">
+    $('.input-datepicker').datepicker({
+        format: "yyyy-mm",
+        startView: 1,
+        minViewMode: 1,
+        todayBtn: "linked",
+        clearBtn: true,
+        startDate: moment('{{ start_date }}').utc().format('YYYY-MM'),
+        autoclose: true
+    });
+    </script>
+    <script>
+    $(document).ready(function(){
+        $('[data-toggle="popover"]').popover();
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h1 data-name='{{ app.name }}' data-start-date={{ start_date }} data-platforms="{{ platforms_list }}" id="app_name">{{ app.name|title }}</h1>
+
+    <a href="{% url "omaha_live_statistics" app.name %}" class="btn">Live Statistics</a>
+    <a href="{% url "omaha_request_list" app.name %}" class="btn">View Requests & Events</a>
+    <a href="{% url "omaha_version_usage" app.name %}" class="btn">View Version Usage</a>
+
+    <hr/>
+
+    <h2 class="inline-middle">Monthly Statistics</h2>
+    <span data-toggle="popover" data-content="Two charts for Windows and Mac platforms showing aggregated information about users’ actions (installs, updates, uninstalls) per month. A special feature of them is the fact that they show installs and uninstalls separately and all actions are unique. It means that if a user installs the application in a particular month and updates it in the same month, the charts show only one action and in this case it will be an install. So it allows us to see the number of new users per month. But if a user does an install and right after that deletes the application, the charts show one install and one uninstall action.">
+        <i class="icon-question-sign middle"></i>
+    </span>
+
+    <form id="month-statistics" class="form-inline center" action="">
+        Filter months:
+        <input type="text" class="input-small input-datepicker" placeholder="Start" name="start">
+        to
+        <input type="text" class="input-small input-datepicker" placeholder="End" name="end">
+        <button type="button" class="btn">
+            <span id="ajax-completed">Apply</span>
+            <img id="ajax-loading" src="{% static "statistics/gif/ajax_loader.gif" %}" hidden/>
+        </button>
+    </form>
+
+    <div>
+        {% for platform in platforms %}
+            <h2 align="center">{%  firstof platform.verbose_name platform.name %} users</h2>
+            <div id="{{ platform.name }}-months-chart" class="bar-chart">
+              <svg></svg>
+            </div>
+        {% endfor %}
+    </div>
+    <hr/>
+
+    <h2 class="inline-middle">Versions</h2>
+    <span data-toggle="popover" data-content="Two pie charts for Windows and Mac platforms showing the number of active users per month for each version of the application.">
+        <i class="icon-question-sign middle"></i>
+    </span>
+
+    <form id="version-statistics" class="form-inline center" action="">
+        Choose a month:
+        <input type="text" class="input-small input-datepicker" placeholder="Month" name="date">
+        <button type="button" class="btn">
+            <span class="ajax-completed">Apply</span>
+            <img class="ajax-loading" src="{% static "statistics/gif/ajax_loader.gif" %}" hidden/>
+        </button>
+    </form>
+    <div>
+        <div class="row">
+            {% for platform in platforms %}
+                 <div class="span6 versions-stat-container">
+                    <h3 align="center">{%  firstof platform.verbose_name platform.name %} users</h3>
+                    <div id="{{ platform }}-versions-chart" class="pie-chart">
+                        <svg></svg>
+                    </div>
+                    <div id="{{ platform }}-table" class="datatable">
+                        <table class="stripe">
+                            <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Amount</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <hr/>
+
+    <h2 class="inline-middle">Channels</h2>
+    <span data-toggle="popover" data-content="This pie chart shows the number of active users per distribution channel per month.">
+        <i class="icon-question-sign middle"></i>
+    </span>
+    <form id="channel-statistics" class="form-inline center" action="">
+        Choose a month:
+        <input type="text" class="input-small input-datepicker" placeholder="Month" name="date">
+        <button type="button" class="btn">
+            <span class="ajax-completed">Apply</span>
+            <img class="ajax-loading" src="{% static "statistics/gif/ajax_loader.gif" %}" hidden/>
+        </button>
+    </form>
+
+    <div class="container" style="width:100%">
+        <div class="row">
+            <div class="offset3 span6">
+                <h3 align="center">All platforms</h3>
+                <div id="channels-chart" class="pie-chart">
+                    <svg></svg>
+                </div>
+                <div id="channels-table" class="datatable">
+                    <table class="stripe" cellspacing="0" width="100%">
+                        <thead class="dt-right">
+                        <tr>
+                            <th>Version</th>
+                            <th>Amount</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

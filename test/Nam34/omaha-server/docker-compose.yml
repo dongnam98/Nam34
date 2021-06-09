@@ -1,0 +1,17 @@
+db:
+  extends:
+    file: docker-compose.common.yml
+    service: db
+
+redis:
+  extends:
+    file: docker-compose.common.yml
+    service: redis
+
+web:
+  extends:
+    file: docker-compose.common.yml
+    service: web
+  links:
+    - db
+    - redis

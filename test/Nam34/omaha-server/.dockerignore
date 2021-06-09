@@ -1,0 +1,25 @@
+.git
+.dockerignore
+
+deploy/
+omaha_server/static
+
+### Python ###
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/

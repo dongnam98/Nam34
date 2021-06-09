@@ -1,0 +1,118 @@
+{% extends "admin/base.html" %}
+{% load nvd3_tags %}
+{% load suit_tags %}
+{% load static %}
+
+{% block title %}Statistics | {{ 'ADMIN_NAME'|suit_conf }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'admin:index' %}">Home</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics" %}">Statistics</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li>
+            <a href="{% url "omaha_statistics_detail" app_name %}">{{ app_name }}</a>
+            <span class="divider">&raquo;</span>
+        </li>
+        <li class="active">
+            <a href="#">Live Dashboard</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block extrahead %}
+    <link media="all" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1-alpha/nv.d3.min.css" type="text/css"
+          rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" media="screen"
+          href="https://cdn.rawgit.com/tarruda/bootstrap-datetimepicker/c26217db8840e5aa8f56e343ce307581960543c9/build/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" type="text/css" media="screen"
+          href='{% static "statistics/css/statistics.css" %}'>
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.14/d3.min.js" type="text/javascript"
+            charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1-alpha/nv.d3.min.js" type="text/javascript"
+            charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js" type="text/javascript"
+            charset="utf-8"></script>
+    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.rawgit.com/tarruda/bootstrap-datetimepicker/c26217db8840e5aa8f56e343ce307581960543c9/build/js/bootstrap-datetimepicker.min.js">
+    </script>
+    <script src='{% static "statistics/js/live_charts.js" %}'></script>
+    <script type="text/javascript">
+        $('.datetimepicker').datetimepicker({
+            format: 'yyyy-MM-dd hh:mm:00',
+            pickSeconds: false,
+            startDate: function () {
+                var d = moment();
+                d.subtract(6, 'M');
+                return new Date(d);
+            }(),
+            endDate: new Date()
+        });
+    </script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="popover"]').popover();
+            $.ajax({
+                url: '/api/channel/',
+                success: function(data) {
+                    var options = '<option value="" selected>Select channel(All by default)</option>';
+                    for (var x = 0; x < data.length; x++) {
+                       options += '<option value="' + data[x]['name'] + '">' + data[x]['name'] + '</option>';
+                    }
+                    $('#channel-select').html(options)
+                }
+            });
+        });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <h1 data-name='{{ app.name }}' data-platforms="{{ platforms_list }}" id="app_name">{{ app.name|title }}</h1>
+
+    <h2 class="inline-middle">Live Statistics</h2>
+    <span data-toggle="popover" data-content="This shows how many users are active during a particular hour. The data is stored only for the last 7 days. These statistics are based on update check requests.">
+        <i class="icon-question-sign middle"></i>
+    </span>
+
+    <div id="month-statistics" class="form-inline center">
+        Filter live statistics:
+        <span id='range-start' class="datetimepicker input-append date">
+            <input type="text" placeholder="Start">
+          <span class="add-on">
+            <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+          </span>
+        </span>
+        -
+        <span id='range-end' class="datetimepicker input-append date">
+            <input type="text" placeholder="End">
+          <span class="add-on">
+            <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+          </span>
+        </span>
+        <select id='channel-select'>
+        </select>
+        <button id="btn-apply" class="btn">
+            <span id="ajax-completed">Apply</span>
+            <img id="ajax-loading" src="{% static "statistics/gif/ajax_loader.gif" %}" hidden/>
+        </button>
+    </div>
+
+    <div>
+        {% for platform in platforms %}
+        <h2 align="center">{%  firstof platform.verbose_name platform.name %} users</h2>
+        <div class="stacked-chart" id="{{ platform.name }}-chart">
+            <svg></svg>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

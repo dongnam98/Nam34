@@ -1,0 +1,27 @@
+{% spaceless %}
+{% load absolute %}
+{% endspaceless %}<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>{{ app_name }}</title>
+        <link>{% absolute 'sparkle_appcast' app_name channel %}</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
+        {% for version in object_list %}
+            <item>
+                <title>{{ version }}</title>
+                {% if version.minimum_system_version %}<sparkle:minimumSystemVersion>{{ version.minimum_system_version }}</sparkle:minimumSystemVersion>{% endif %}
+                <description><![CDATA[
+                    {% if version.release_notes %}{{ version.release_notes }}{% endif %}
+                ]]>
+                </description>
+                <pubDate>{{ version.created|date:"r" }}</pubDate>
+                <enclosure url="{{ version.file.url }}"
+                           sparkle:version="{{ version.version }}"
+                           {% if version.short_version %}sparkle:shortVersionString="{{ version.short_version }}"{% endif %}
+                           {% if version.dsa_signature %}sparkle:dsaSignature="{{ version.dsa_signature }}"{% endif %}
+                           length="{{ version.file_size }}" type="application/octet-stream"/>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>

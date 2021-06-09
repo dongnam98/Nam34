@@ -1,0 +1,24 @@
+db:
+  extends:
+    file: docker-compose.common.yml
+    service: db
+
+redis:
+  extends:
+    file: docker-compose.common.yml
+    service: redis
+
+sut:
+  command: 'true'
+  extends:
+    file: docker-compose.common.yml
+    service: web
+  build: .
+  dockerfile: Dockerfile-dev
+  links:
+    - db
+    - redis
+  volumes:
+    - ./:/srv/omaha
+  environment:
+    DJANGO_SETTINGS_MODULE: 'omaha_server.settings_test'
